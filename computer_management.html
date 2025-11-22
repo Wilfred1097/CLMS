@@ -390,6 +390,7 @@
             updateComputersTable();
             populateLabSelects();
             initializeSelect2();
+            startTokenRefresh();
         });
 
         // Enhanced logout function with SweetAlert2
@@ -703,13 +704,11 @@
                     const qrDiv = document.createElement('div');
                     qrDiv.className = 'qr-code';
                     
-                    // QR code data - you can customize this
-                    const qrData = JSON.stringify({
-                        lab: lab.name,
-                        pcNumber: computer.pcNumber,
-                        id: computer.id,
-                        system: "CLMS"
-                    });
+                    // Generate token for this computer
+                    const token = generateComputerToken(computer.id);
+                    
+                    // QR code data - includes lab, pc number, and token
+                    const qrData = `${window.location.origin}/student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
                     
                     // Generate QR code using qrcode-generator
                     try {
@@ -730,7 +729,7 @@
                         qrDiv.appendChild(qrImage);
                     } catch (error) {
                         console.error('QR Code generation error:', error);
-                        qrDiv.innerHTML = '<div style="text-align:center; padding:5px;">QR Error</div>';
+                        qrDiv.innerHTML = '<div style="text-align:center; padding:20px;">QR Error</div>';
                         qrDiv.style.display = 'flex';
                         qrDiv.style.alignItems = 'center';
                         qrDiv.style.justifyContent = 'center';
@@ -738,7 +737,7 @@
                     
                     const label = document.createElement('div');
                     label.className = 'qr-label';
-                    label.innerHTML = `<strong>${lab.name}</strong><br>PC #: <strong>${computer.pcNumber}</strong>`;
+                    label.innerHTML = `<strong>${lab.name}</strong><br>${computer.pcNumber}<br><small>Token: ${token.substring(0, 8)}...</small>`;
                     
                     qrItem.appendChild(qrDiv);
                     qrItem.appendChild(label);
@@ -751,6 +750,50 @@
             // Hide the generate QR modal and show the QR display modal
             bootstrap.Modal.getInstance(document.getElementById('generateQRModal')).hide();
             new bootstrap.Modal(document.getElementById('qrDisplayModal')).show();
+        }
+
+        // Auto-refresh tokens every hour
+        function startTokenRefresh() {
+            setInterval(() => {
+                const computers = JSON.parse(localStorage.getItem('computers')) || [];
+                const tokens = JSON.parse(localStorage.getItem('computerTokens')) || {};
+                
+                computers.forEach(computer => {
+                    generateComputerToken(computer.id); // This will refresh if expired
+                });
+                
+                console.log('Computer tokens refreshed');
+            }, 60 * 60 * 1000); // Every hour
+        }
+
+        // Generate computer token (valid for 1 hour)
+        function generateComputerToken(computerId) {
+            const tokens = JSON.parse(localStorage.getItem('computerTokens')) || {};
+            const currentTime = Date.now();
+            const tokenExpiry = 60 * 60 * 1000; // 1 hour in milliseconds
+            
+            // Check if existing token is still valid
+            if (tokens[computerId] && tokens[computerId].expiry > currentTime) {
+                return tokens[computerId].token;
+            }
+            
+            // Generate new token
+            const newToken = generateSecureToken();
+            tokens[computerId] = {
+                token: newToken,
+                expiry: currentTime + tokenExpiry,
+                computerId: computerId
+            };
+            
+            localStorage.setItem('computerTokens', JSON.stringify(tokens));
+            return newToken;
+        }
+
+        // Generate secure random token
+        function generateSecureToken() {
+            const array = new Uint8Array(32);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
         }
 
         // Update computers dropdown when lab is selected in QR modal
