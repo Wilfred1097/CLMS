@@ -714,7 +714,7 @@
                     const token = generateComputerToken(computer.id);
                     
                     // QR code data - use relative URL to avoid domain issues
-                    const qrData = `student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
+                    const qrData = `https://wilfred1097.github.io/CLMS/student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
                     
                     console.log(`QR Data for ${computer.pcNumber}: ${qrData}`);
                     
