@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            position: relative;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link.text-danger:hover {
+            background-color: #dc3545;
+            color: white !important;
+        }
+        .position-sticky {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .schedule-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .status-scheduled { background-color: #d1ecf1; border-color: #bee5eb; }
+        .status-ongoing { background-color: #d4edda; border-color: #c3e6cb; }
+        .status-completed { background-color: #e2e3e5; border-color: #d6d8db; }
+        .time-badge {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">CLMS</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="computer_management.html">
+                                <i class="fas fa-laptop me-2"></i>
+                                Computer Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department_management.html">
+                                <i class="fas fa-book me-2"></i>
+                                Course/Department Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="instructor_management.html">
+                                <i class="fas fa-users me-2"></i>
+                                Instructor Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student_management.html">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Students Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="schedule_management.html">
+                                <i class="fas fa-calendar me-2"></i>
+                                Schedule Management
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Logout Section at Bottom -->
+                    <div class="sidebar-footer mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Schedule Management</h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+                        <i class="fas fa-plus me-2"></i>Add Schedule
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-box">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search schedules...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select class="form-select" id="searchBy">
+                                <option value="all">Search All</option>
+                                <option value="instructor">Instructor</option>
+                                <option value="laboratory">Laboratory</option>
+                                <option value="subject">Subject</option>
+                                <option value="day">Day</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="searchSchedules()">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedules Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Laboratory Schedules</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Laboratory</th>
+                                        <th>Instructor</th>
+                                        <th>Day</th>
+                                        <th>Time</th>
+                                        <th>Subject</th>
+                                        <th>Status</th>
+                                        <th>Date Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedulesTableBody">
+                                    <!-- Schedules will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Schedule Modal -->
+    <div class="modal fade" id="addScheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduleLaboratory" class="form-label">Laboratory</label>
+                                <select class="form-select" id="scheduleLaboratory" required>
+                                    <option value="">Select Laboratory</option>
+                                    <!-- Laboratories will be populated here -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduleInstructor" class="form-label">Instructor</label>
+                                <select class="form-select" id="scheduleInstructor" required>
+                                    <option value="">Select Instructor</option>
+                                    <!-- Instructors will be populated here -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="scheduleDay" class="form-label">Day</label>
+                                <select class="form-select" id="scheduleDay" required>
+                                    <option value="">Select Day</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="startTime" class="form-label">Start Time</label>
+                                <input type="time" class="form-control" id="startTime" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="endTime" class="form-label">End Time</label>
+                                <input type="time" class="form-control" id="endTime" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" placeholder="Enter subject name" required>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Add Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Schedule Modal -->
+    <div class="modal fade" id="editScheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editScheduleForm">
+                        <input type="hidden" id="editScheduleId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editScheduleLaboratory" class="form-label">Laboratory</label>
+                                <select class="form-select" id="editScheduleLaboratory" required>
+                                    <!-- Laboratories will be populated here -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editScheduleInstructor" class="form-label">Instructor</label>
+                                <select class="form-select" id="editScheduleInstructor" required>
+                                    <!-- Instructors will be populated here -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="editScheduleDay" class="form-label">Day</label>
+                                <select class="form-select" id="editScheduleDay" required>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editStartTime" class="form-label">Start Time</label>
+                                <input type="time" class="form-control" id="editStartTime" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editEndTime" class="form-label">End Time</label>
+                                <input type="time" class="form-control" id="editEndTime" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editSubject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="editSubject" required>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Data storage
+        let schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+        let laboratories = JSON.parse(localStorage.getItem('laboratories')) || [];
+        let instructors = JSON.parse(localStorage.getItem('instructors')) || [];
+        let scheduleIdCounter = parseInt(localStorage.getItem('scheduleIdCounter')) || 1;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSchedulesTable();
+            populateLaboratorySelects();
+            populateInstructorSelects();
+        });
+
+        // Add Schedule
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const laboratoryId = parseInt(document.getElementById('scheduleLaboratory').value);
+            const instructorId = parseInt(document.getElementById('scheduleInstructor').value);
+            const day = document.getElementById('scheduleDay').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const subject = document.getElementById('subject').value.trim();
+
+            if (laboratoryId && instructorId && day && startTime && endTime && subject) {
+                // Check for schedule conflicts
+                const hasConflict = checkScheduleConflict(laboratoryId, instructorId, day, startTime, endTime);
+                
+                if (hasConflict) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Schedule Conflict',
+                        text: 'There is a scheduling conflict. Please choose a different time or laboratory.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const laboratory = laboratories.find(lab => lab.id === laboratoryId);
+                const instructor = instructors.find(inst => inst.id === instructorId);
+                
+                const newSchedule = {
+                    id: scheduleIdCounter++,
+                    laboratoryId: laboratoryId,
+                    laboratoryName: laboratory.name,
+                    instructorId: instructorId,
+                    instructorName: instructor.fullName,
+                    day: day,
+                    startTime: startTime,
+                    endTime: endTime,
+                    timeDisplay: `${startTime} - ${endTime}`,
+                    subject: subject,
+                    status: 'Active', // Default status for recurring schedules
+                    createdAt: new Date().toISOString()
+                };
+
+                schedules.push(newSchedule);
+                saveData();
+                updateSchedulesTable();
+                document.getElementById('scheduleForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addScheduleModal')).hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Schedule added successfully!',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+        // Edit Schedule
+        document.getElementById('editScheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const scheduleId = parseInt(document.getElementById('editScheduleId').value);
+            const laboratoryId = parseInt(document.getElementById('editScheduleLaboratory').value);
+            const instructorId = parseInt(document.getElementById('editScheduleInstructor').value);
+            const day = document.getElementById('editScheduleDay').value;
+            const startTime = document.getElementById('editStartTime').value;
+            const endTime = document.getElementById('editEndTime').value;
+            const subject = document.getElementById('editSubject').value.trim();
+
+            const schedule = schedules.find(s => s.id === scheduleId);
+            if (schedule) {
+                // Check for schedule conflicts (excluding current schedule)
+                const conflictResult = checkScheduleConflict(laboratoryId, instructorId, day, startTime, endTime, scheduleId);
+                
+                if (conflictResult.hasConflict) {
+                    let conflictMessage = '';
+                    if (conflictResult.conflictDetails.type === 'laboratory') {
+                        conflictMessage = `Laboratory "${conflictResult.conflictDetails.laboratory}" is already booked on ${conflictResult.conflictDetails.day} at ${conflictResult.conflictDetails.existingTime} by ${conflictResult.conflictDetails.instructor}.`;
+                    } else {
+                        conflictMessage = `Instructor "${conflictResult.conflictDetails.instructor}" is already teaching on ${conflictResult.conflictDetails.day} at ${conflictResult.conflictDetails.existingTime} in ${conflictResult.conflictDetails.laboratory}.`;
+                    }
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Schedule Conflict',
+                        html: conflictMessage + '<br><br>Please choose a different time, laboratory, or instructor.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const laboratory = laboratories.find(lab => lab.id === laboratoryId);
+                const instructor = instructors.find(inst => inst.id === instructorId);
+                
+                schedule.laboratoryId = laboratoryId;
+                schedule.laboratoryName = laboratory.name;
+                schedule.instructorId = instructorId;
+                schedule.instructorName = instructor.fullName;
+                schedule.day = day;
+                schedule.startTime = startTime;
+                schedule.endTime = endTime;
+                schedule.timeDisplay = `${startTime} - ${endTime}`;
+                schedule.subject = subject;
+                // Status remains as 'Active' for recurring schedules
+                schedule.updatedAt = new Date().toISOString();
+
+                saveData();
+                updateSchedulesTable();
+                bootstrap.Modal.getInstance(document.getElementById('editScheduleModal')).hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Schedule updated successfully!',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+        // Check for schedule conflicts
+        function checkScheduleConflict(laboratoryId, instructorId, day, startTime, endTime, excludeScheduleId = null) {
+            return schedules.some(schedule => {
+                if (excludeScheduleId && schedule.id === excludeScheduleId) return false;
+                
+                // Check if same laboratory, same day, and time overlaps
+                if (schedule.laboratoryId === laboratoryId && schedule.day === day) {
+                    return timeOverlaps(startTime, endTime, schedule.startTime, schedule.endTime);
+                }
+                
+                // Check if same instructor, same day, and time overlaps
+                if (schedule.instructorId === instructorId && schedule.day === day) {
+                    return timeOverlaps(startTime, endTime, schedule.startTime, schedule.endTime);
+                }
+                
+                return false;
+            });
+        }
+
+        // Check if time ranges overlap
+        function timeOverlaps(start1, end1, start2, end2) {
+            return (start1 < end2 && end1 > start2);
+        }
+
+        // Function to edit schedule
+        function editSchedule(id) {
+            const schedule = schedules.find(s => s.id === id);
+            if (schedule) {
+                document.getElementById('editScheduleId').value = schedule.id;
+                document.getElementById('editScheduleDay').value = schedule.day;
+                document.getElementById('editStartTime').value = schedule.startTime;
+                document.getElementById('editEndTime').value = schedule.endTime;
+                document.getElementById('editSubject').value = schedule.subject;
+                // Removed status setting since status dropdown is removed
+
+                // Populate laboratory select
+                const labSelect = document.getElementById('editScheduleLaboratory');
+                labSelect.innerHTML = '';
+                laboratories.forEach(lab => {
+                    const option = document.createElement('option');
+                    option.value = lab.id;
+                    option.textContent = lab.name;
+                    if (lab.id === schedule.laboratoryId) {
+                        option.selected = true;
+                    }
+                    labSelect.appendChild(option);
+                });
+
+                // Populate instructor select
+                const instSelect = document.getElementById('editScheduleInstructor');
+                instSelect.innerHTML = '';
+                instructors.forEach(inst => {
+                    const option = document.createElement('option');
+                    option.value = inst.id;
+                    option.textContent = inst.fullName;
+                    if (inst.id === schedule.instructorId) {
+                        option.selected = true;
+                    }
+                    instSelect.appendChild(option);
+                });
+
+                new bootstrap.Modal(document.getElementById('editScheduleModal')).show();
+            }
+        }
+
+        // Function to delete schedule
+        function deleteSchedule(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    schedules = schedules.filter(s => s.id !== id);
+                    saveData();
+                    updateSchedulesTable();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Schedule deleted successfully!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        // Populate laboratory selects
+        function populateLaboratorySelects() {
+            const labSelects = [
+                document.getElementById('scheduleLaboratory'),
+                document.getElementById('editScheduleLaboratory')
+            ];
+            
+            labSelects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Select Laboratory</option>';
+                    laboratories.forEach(lab => {
+                        const option = document.createElement('option');
+                        option.value = lab.id;
+                        option.textContent = lab.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Populate instructor selects
+        function populateInstructorSelects() {
+            const instSelects = [
+                document.getElementById('scheduleInstructor'),
+                document.getElementById('editScheduleInstructor')
+            ];
+            
+            instSelects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Select Instructor</option>';
+                    instructors.forEach(inst => {
+                        const option = document.createElement('option');
+                        option.value = inst.id;
+                        option.textContent = inst.fullName;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Search functionality
+        function searchSchedules() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchBy = document.getElementById('searchBy').value;
+            
+            if (!searchTerm) {
+                updateSchedulesTable();
+                return;
+            }
+
+            const filteredSchedules = schedules.filter(schedule => {
+                if (searchBy === 'all') {
+                    return (
+                        schedule.laboratoryName.toLowerCase().includes(searchTerm) ||
+                        schedule.instructorName.toLowerCase().includes(searchTerm) ||
+                        schedule.subject.toLowerCase().includes(searchTerm) ||
+                        schedule.day.toLowerCase().includes(searchTerm)
+                    );
+                } else if (searchBy === 'instructor') {
+                    return schedule.instructorName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'laboratory') {
+                    return schedule.laboratoryName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'subject') {
+                    return schedule.subject.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'day') {
+                    return schedule.day.toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
+
+            displayFilteredSchedules(filteredSchedules);
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchBy').value = 'all';
+            updateSchedulesTable();
+        }
+
+        // Display filtered schedules
+        function displayFilteredSchedules(filteredSchedules) {
+            const tbody = document.getElementById('schedulesTableBody');
+            tbody.innerHTML = '';
+            
+            filteredSchedules.forEach((schedule, index) => {
+                const statusClass = 'status-scheduled'; // All schedules will have the same status class
+                const date = schedule.updatedAt ? schedule.updatedAt : schedule.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${schedule.laboratoryName}</td>
+                    <td>${schedule.instructorName}</td>
+                    <td>${schedule.day}</td>
+                    <td><span class="time-badge">${schedule.timeDisplay}</span></td>
+                    <td>${schedule.subject}</td>
+                    <td><span class="badge ${statusClass}">Active</span></td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editSchedule(${schedule.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSchedule(${schedule.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update schedules table
+        function updateSchedulesTable() {
+            const tbody = document.getElementById('schedulesTableBody');
+            tbody.innerHTML = '';
+            
+            schedules.forEach((schedule, index) => {
+                const statusClass = 'status-scheduled'; // All schedules will have the same status class
+                const date = schedule.updatedAt ? schedule.updatedAt : schedule.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${schedule.laboratoryName}</td>
+                    <td>${schedule.instructorName}</td>
+                    <td>${schedule.day}</td>
+                    <td><span class="time-badge">${schedule.timeDisplay}</span></td>
+                    <td>${schedule.subject}</td>
+                    <td><span class="badge ${statusClass}">Active</span></td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editSchedule(${schedule.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSchedule(${schedule.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('schedules', JSON.stringify(schedules));
+            localStorage.setItem('scheduleIdCounter', scheduleIdCounter.toString());
+        }
+
+        // Enable search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchSchedules();
+            }
+        });
+
+        // Simple logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
