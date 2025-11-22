@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard - CLMS</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            position: relative;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .sidebar .nav-link.text-danger:hover {
+            background-color: #dc3545;
+            color: white !important;
+        }
+        .position-sticky {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .computer-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .computer-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .computer-in-use {
+            border-left: 4px solid #28a745;
+            background-color: #f8fff9;
+        }
+        .computer-available {
+            border-left: 4px solid #6c757d;
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+        .student-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .lab-header {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">CLMS</h4>
+                        <small class="text-white-50">Instructor Portal</small>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="instructor_dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Logout Section at Bottom -->
+                    <div class="sidebar-footer mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Instructor Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="text-muted" id="currentDateTime"></span>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-primary">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Computers
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalComputers">10</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-laptop fa-2x text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-success">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Computers in Use
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="computersInUse">9</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-info">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Available Computers
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="availableComputers">1</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-desktop fa-2x text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-warning">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Students Present
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="studentsPresent">9</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-user-graduate fa-2x text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Computers Grid -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-laptop-house me-2"></i>
+                                    Computer Laboratory 1 - Current Usage
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="computersGrid">
+                                    <!-- Computers will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Dummy data for students and computers
+        const dummyStudents = [
+            { id: '2023-001', name: 'Juan Dela Cruz', course: 'BS Computer Science', year: '2nd Year' },
+            { id: '2023-002', name: 'Maria Santos', course: 'BS Information Technology', year: '3rd Year' },
+            { id: '2023-003', name: 'Pedro Reyes', course: 'BS Computer Science', year: '1st Year' },
+            { id: '2023-004', name: 'Ana Lopez', course: 'BS Information Systems', year: '4th Year' },
+            { id: '2023-005', name: 'Miguel Garcia', course: 'BS Computer Science', year: '2nd Year' },
+            { id: '2023-006', name: 'Sofia Martinez', course: 'BS Information Technology', year: '3rd Year' },
+            { id: '2023-007', name: 'Carlos Lim', course: 'BS Computer Science', year: '1st Year' },
+            { id: '2023-008', name: 'Elena Tan', course: 'BS Information Systems', year: '4th Year' },
+            { id: '2023-009', name: 'James Wong', course: 'BS Computer Science', year: '2nd Year' },
+            { id: '2023-010', name: 'Lisa Chen', course: 'BS Information Technology', year: '3rd Year' }
+        ];
+
+        const dummyComputers = [
+            { id: 1, name: 'PC 1', status: 'in-use', student: '2023-001', loginTime: '7:05 AM' },
+            { id: 2, name: 'PC 2', status: 'in-use', student: '2023-002', loginTime: '7:10 AM' },
+            { id: 3, name: 'PC 3', status: 'in-use', student: '2023-003', loginTime: '7:15 AM' },
+            { id: 4, name: 'PC 4', status: 'in-use', student: '2023-004', loginTime: '7:20 AM' },
+            { id: 5, name: 'PC 5', status: 'in-use', student: '2023-005', loginTime: '7:25 AM' },
+            { id: 6, name: 'PC 6', status: 'in-use', student: '2023-006', loginTime: '7:30 AM' },
+            { id: 7, name: 'PC 7', status: 'in-use', student: '2023-007', loginTime: '7:35 AM' },
+            { id: 8, name: 'PC 8', status: 'in-use', student: '2023-008', loginTime: '7:40 AM' },
+            { id: 9, name: 'PC 9', status: 'in-use', student: '2023-009', loginTime: '7:45 AM' },
+            { id: 10, name: 'PC 10', status: 'available', student: null, loginTime: null }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            initializeDashboard();
+            startLiveUpdates();
+        });
+
+        // Update current date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Initialize dashboard with data
+        function initializeDashboard() {
+            displayComputersGrid();
+            updateStatistics();
+            displayRecentLogins();
+        }
+
+        // Display computers grid
+        function displayComputersGrid() {
+            const grid = document.getElementById('computersGrid');
+            grid.innerHTML = '';
+
+            dummyComputers.forEach(computer => {
+                const computerCard = document.createElement('div');
+                computerCard.className = 'col-xl-3 col-lg-4 col-md-6 mb-3';
+
+                const student = computer.student ? dummyStudents.find(s => s.id === computer.student) : null;
+
+                computerCard.innerHTML = `
+                    <div class="computer-card p-3 ${computer.status === 'in-use' ? 'computer-in-use' : 'computer-available'}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">${computer.name}</h6>
+                            <span class="badge ${computer.status === 'in-use' ? 'bg-success' : 'bg-secondary'} status-badge">
+                                ${computer.status === 'in-use' ? 'In Use' : 'Available'}
+                            </span>
+                        </div>
+                        
+                        ${computer.status === 'in-use' ? `
+                            <div class="student-info">
+                                <div class="mb-2">
+                                    <small class="text-muted">Student:</small>
+                                    <div class="fw-bold">${student.name}</div>
+                                </div>
+                                <div class="row small text-muted">
+                                    <div class="col-12">
+                                        <i class="fas fa-id-card me-1"></i>${student.id}
+                                    </div>
+                                    <div class="col-12">
+                                        <i class="fas fa-book me-1"></i>${student.course}
+                                    </div>
+                                    <div class="col-12">
+                                        <i class="fas fa-clock me-1"></i>Logged in: ${computer.loginTime}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="text-center py-3">
+                                <i class="fas fa-desktop fa-2x text-muted mb-2"></i>
+                                <div class="text-muted">Available for use</div>
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                grid.appendChild(computerCard);
+            });
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalComputers = dummyComputers.length;
+            const computersInUse = dummyComputers.filter(c => c.status === 'in-use').length;
+            const availableComputers = totalComputers - computersInUse;
+
+            document.getElementById('totalComputers').textContent = totalComputers;
+            document.getElementById('computersInUse').textContent = computersInUse;
+            document.getElementById('availableComputers').textContent = availableComputers;
+            document.getElementById('studentsPresent').textContent = computersInUse;
+        }
+
+        // Display recent logins
+        function displayRecentLogins() {
+            const table = document.getElementById('recentLoginsTable');
+            table.innerHTML = '';
+
+            const recentComputers = dummyComputers
+                .filter(c => c.status === 'in-use')
+                .slice(0, 5); // Show last 5 logins
+
+            recentComputers.forEach(computer => {
+                const student = dummyStudents.find(s => s.id === computer.student);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${computer.name}</td>
+                    <td>${computer.loginTime}</td>
+                `;
+                
+                table.appendChild(row);
+            });
+
+            // Add message if no recent logins
+            if (recentComputers.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="3" class="text-center text-muted">
+                        No recent logins
+                    </td>
+                `;
+                table.appendChild(row);
+            }
+        }
+
+        // Simulate live updates (computer status changes)
+        function startLiveUpdates() {
+            setInterval(() => {
+                // Randomly change one computer's status (for demo purposes)
+                const randomIndex = Math.floor(Math.random() * dummyComputers.length);
+                const computer = dummyComputers[randomIndex];
+                
+                if (computer.status === 'available') {
+                    // Make it in-use with a random student
+                    const availableStudents = dummyStudents.filter(s => 
+                        !dummyComputers.some(c => c.student === s.id)
+                    );
+                    if (availableStudents.length > 0) {
+                        const randomStudent = availableStudents[Math.floor(Math.random() * availableStudents.length)];
+                        computer.status = 'in-use';
+                        computer.student = randomStudent.id;
+                        computer.loginTime = new Date().toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: true 
+                        });
+                    }
+                } else {
+                    // Make it available
+                    computer.status = 'available';
+                    computer.student = null;
+                    computer.loginTime = null;
+                }
+
+                // Update display
+                displayComputersGrid();
+                updateStatistics();
+                displayRecentLogins();
+
+            }, 30000); // Update every 30 seconds for demo
+        }
+
+        // Update time every second
+        setInterval(updateDateTime, 1000);
+
+        // Simple SweetAlert2 logout function
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, logout!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'instructor_login.html';
+                }
+            });
+        }
+
+        // Simulate real-time clock for lab session
+        function updateLabTime() {
+            const now = new Date();
+            const options = { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            };
+            document.getElementById('currentLabTime').innerHTML = 
+                `Current Time<br><small>${now.toLocaleTimeString('en-US', options)}</small>`;
+        }
+
+        setInterval(updateLabTime, 1000);
+        updateLabTime();
+    </script>
+</body>
+</html>
