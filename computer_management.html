@@ -708,7 +708,7 @@
                     const token = generateComputerToken(computer.id);
                     
                     // QR code data - includes lab, pc number, and token
-                    const qrData = `${window.location.origin}/student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
+                    const qrData = `${window.location.origin}/CLMS/student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
                     
                     // Generate QR code using qrcode-generator
                     try {
