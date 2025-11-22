@@ -14,6 +14,7 @@
         .sidebar {
             min-height: 100vh;
             background-color: #343a40;
+            position: relative;
         }
         .sidebar .nav-link {
             color: #fff;
@@ -23,6 +24,15 @@
         }
         .sidebar .nav-link.active {
             background-color: #0d6efd;
+        }
+        .sidebar .nav-link.text-danger:hover {
+            background-color: #dc3545;
+            color: white !important;
+        }
+        .position-sticky {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .stat-card {
             border-radius: 10px;
@@ -102,6 +112,18 @@
                             </a>
                         </li>
                     </ul>
+                    
+                    <!-- Logout Section at Bottom -->
+                    <div class="sidebar-footer mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
@@ -328,6 +350,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Initialize dashboard
@@ -336,6 +360,27 @@
             loadDashboardData();
             setInterval(updateDateTime, 60000); // Update time every minute
         });
+
+        // Enhanced logout function with SweetAlert2
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, logout!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // You can add any cleanup code here if needed
+                    localStorage.removeItem('currentUser'); // If you have user sessions
+                    window.location.href = 'index.html';
+                }
+            });
+            return false; // Prevent immediate navigation
+        }
 
         // Update current date and time
         function updateDateTime() {
