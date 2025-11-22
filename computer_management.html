@@ -390,6 +390,7 @@
             updateComputersTable();
             populateLabSelects();
             initializeSelect2();
+            initializeComputerTokens();
             startTokenRefresh();
         });
 
@@ -679,13 +680,18 @@
             }
         });
 
-        // Function to generate QR codes
+        // Update the QR code generation to use the current domain
         function generateQRCodes(labId, computerIds) {
             const qrContainer = document.getElementById('qrCodesContainer');
             qrContainer.innerHTML = '';
             
             const lab = laboratories.find(l => l.id === labId);
             const selectedComputers = computers.filter(c => computerIds.includes(c.id.toString()));
+            
+            // Get current domain and path
+            const currentUrl = window.location.href;
+            const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+            const studentUsageUrl = `${baseUrl}student_usage.html`;
             
             // Create rows with max 5 QR codes per row
             const qrRows = [];
@@ -704,11 +710,13 @@
                     const qrDiv = document.createElement('div');
                     qrDiv.className = 'qr-code';
                     
-                    // Generate token for this computer
+                    // Get or generate token for this computer
                     const token = generateComputerToken(computer.id);
                     
-                    // QR code data - includes lab, pc number, and token
-                    const qrData = `${window.location.origin}/CLMS/student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
+                    // QR code data - use relative URL to avoid domain issues
+                    const qrData = `student_usage.html?lab=${encodeURIComponent(lab.name)}&pc=${encodeURIComponent(computer.pcNumber)}&token=${token}&computerId=${computer.id}`;
+                    
+                    console.log(`QR Data for ${computer.pcNumber}: ${qrData}`);
                     
                     // Generate QR code using qrcode-generator
                     try {
@@ -752,48 +760,65 @@
             new bootstrap.Modal(document.getElementById('qrDisplayModal')).show();
         }
 
-        // Auto-refresh tokens every hour
+        // Auto-refresh tokens every 30 minutes
         function startTokenRefresh() {
             setInterval(() => {
                 const computers = JSON.parse(localStorage.getItem('computers')) || [];
-                const tokens = JSON.parse(localStorage.getItem('computerTokens')) || {};
-                
                 computers.forEach(computer => {
-                    generateComputerToken(computer.id); // This will refresh if expired
+                    generateComputerToken(computer.id);
                 });
-                
-                console.log('Computer tokens refreshed');
-            }, 60 * 60 * 1000); // Every hour
+                console.log('Computer tokens refreshed at:', new Date().toLocaleString());
+            }, 30 * 60 * 1000); // Every 30 minutes
         }
 
-        // Generate computer token (valid for 1 hour)
+        // Token Management Functions
         function generateComputerToken(computerId) {
             const tokens = JSON.parse(localStorage.getItem('computerTokens')) || {};
             const currentTime = Date.now();
             const tokenExpiry = 60 * 60 * 1000; // 1 hour in milliseconds
-            
-            // Check if existing token is still valid
-            if (tokens[computerId] && tokens[computerId].expiry > currentTime) {
-                return tokens[computerId].token;
-            }
             
             // Generate new token
             const newToken = generateSecureToken();
             tokens[computerId] = {
                 token: newToken,
                 expiry: currentTime + tokenExpiry,
-                computerId: computerId
+                computerId: computerId,
+                generatedAt: new Date().toISOString()
             };
             
             localStorage.setItem('computerTokens', JSON.stringify(tokens));
+            console.log(`Generated token for computer ${computerId}: ${newToken}`);
             return newToken;
         }
 
         // Generate secure random token
         function generateSecureToken() {
-            const array = new Uint8Array(32);
-            window.crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            // Fallback for crypto.getRandomValues
+            if (window.crypto && window.crypto.getRandomValues) {
+                const array = new Uint8Array(32);
+                window.crypto.getRandomValues(array);
+                return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            } else {
+                // Fallback for browsers without crypto support
+                return Math.random().toString(36).substring(2, 15) + 
+                       Math.random().toString(36).substring(2, 15) +
+                       Math.random().toString(36).substring(2, 15) +
+                       Math.random().toString(36).substring(2, 15);
+            }
+        }
+
+        // Initialize tokens for all computers when page loads
+        function initializeComputerTokens() {
+            const computers = JSON.parse(localStorage.getItem('computers')) || [];
+            const tokens = JSON.parse(localStorage.getItem('computerTokens')) || {};
+            
+            computers.forEach(computer => {
+                if (!tokens[computer.id] || tokens[computer.id].expiry < Date.now()) {
+                    generateComputerToken(computer.id);
+                }
+            });
+            
+            console.log('Computer tokens initialized');
         }
 
         // Update computers dropdown when lab is selected in QR modal
