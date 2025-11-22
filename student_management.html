@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">CLMS</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="computer_management.html">
+                                <i class="fas fa-laptop me-2"></i>
+                                Computer Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department_management.html">
+                                <i class="fas fa-book me-2"></i>
+                                Course/Department Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="instructor_management.html">
+                                <i class="fas fa-users me-2"></i>
+                                Instructor Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="student_management.html">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Students Management
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Students Management</h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                        <i class="fas fa-plus me-2"></i>Add Student
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-box">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search students...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select class="form-select" id="searchBy">
+                                <option value="all">Search All</option>
+                                <option value="studentId">Student ID</option>
+                                <option value="firstName">First Name</option>
+                                <option value="lastName">Last Name</option>
+                                <option value="course">Course</option>
+                                <option value="schoolYear">School Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="searchStudents()">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Students List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Course</th>
+                                        <th>Gender</th>
+                                        <th>School Year</th>
+                                        <th>Contact Number</th>
+                                        <th>Date Added</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody">
+                                    <!-- Students will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="studentForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentId" class="form-label">Student ID</label>
+                                <input type="text" class="form-control" id="studentId" placeholder="Enter student ID" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentCourse" class="form-label">Course</label>
+                                <select class="form-select" id="studentCourse" required>
+                                    <option value="">Select Course</option>
+                                    <!-- Courses will be populated here -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="middleName" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="middleName">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="schoolYear" class="form-label">School Year</label>
+                                <select class="form-select" id="schoolYear" required>
+                                    <option value="">Select School Year</option>
+                                    <option value="2023-2024">2023-2024</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2026-2027">2026-2027</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="2" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contactNumber" class="form-label">Contact Number</label>
+                            <input type="tel" class="form-control" id="contactNumber" 
+                                   pattern="[0-9]{11}" 
+                                   title="Please enter exactly 11 digits" 
+                                   maxlength="11"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
+                                   required>
+                            <div class="form-text">Must be exactly 11 digits (e.g., 09123456789)</div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Add Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editStudentForm">
+                        <input type="hidden" id="editStudentId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editStudentIdField" class="form-label">Student ID</label>
+                                <input type="text" class="form-control" id="editStudentIdField" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editStudentCourse" class="form-label">Course</label>
+                                <select class="form-select" id="editStudentCourse" required>
+                                    <!-- Courses will be populated here -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="editFirstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="editFirstName" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editMiddleName" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="editMiddleName">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editLastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="editLastName" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editGender" class="form-label">Gender</label>
+                                <select class="form-select" id="editGender" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editSchoolYear" class="form-label">School Year</label>
+                                <select class="form-select" id="editSchoolYear" required>
+                                    <option value="2023-2024">2023-2024</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2026-2027">2026-2027</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="editAddress" rows="2" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editContactNumber" class="form-label">Contact Number</label>
+                            <input type="tel" class="form-control" id="editContactNumber" 
+                                   pattern="[0-9]{11}" 
+                                   title="Please enter exactly 11 digits" 
+                                   maxlength="11"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
+                                   required>
+                            <div class="form-text">Must be exactly 11 digits (e.g., 09123456789)</div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Data storage
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let courses = JSON.parse(localStorage.getItem('courses')) || [];
+        let studentIdCounter = parseInt(localStorage.getItem('studentIdCounter')) || 1;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStudentsTable();
+            populateCourseSelects();
+        });
+
+        // Add Student
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const studentId = document.getElementById('studentId').value.trim();
+            const courseId = parseInt(document.getElementById('studentCourse').value);
+            const firstName = document.getElementById('firstName').value.trim();
+            const middleName = document.getElementById('middleName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const gender = document.getElementById('gender').value;
+            const schoolYear = document.getElementById('schoolYear').value;
+            const address = document.getElementById('address').value.trim();
+            const contactNumber = document.getElementById('contactNumber').value.trim();
+
+            if (studentId && courseId && firstName && lastName && gender && schoolYear && address && contactNumber) {
+                // Check if student ID already exists
+                const studentIdExists = students.some(student => 
+                    student.studentId.toLowerCase() === studentId.toLowerCase()
+                );
+                
+                if (studentIdExists) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Student ID already exists. Please use a different ID.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const course = courses.find(c => c.id === courseId);
+                
+                const newStudent = {
+                    id: studentIdCounter++,
+                    studentId: studentId,
+                    firstName: firstName,
+                    middleName: middleName,
+                    lastName: lastName,
+                    fullName: `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`,
+                    courseId: courseId,
+                    courseName: course.name,
+                    departmentName: course.departmentName,
+                    gender: gender,
+                    schoolYear: schoolYear,
+                    address: address,
+                    contactNumber: contactNumber,
+                    createdAt: new Date().toISOString()
+                };
+
+                students.push(newStudent);
+                saveData();
+                updateStudentsTable();
+                document.getElementById('studentForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Student added successfully!',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+        // Edit Student
+        document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const studentId = parseInt(document.getElementById('editStudentId').value);
+            const studentIdField = document.getElementById('editStudentIdField').value.trim();
+            const courseId = parseInt(document.getElementById('editStudentCourse').value);
+            const firstName = document.getElementById('editFirstName').value.trim();
+            const middleName = document.getElementById('editMiddleName').value.trim();
+            const lastName = document.getElementById('editLastName').value.trim();
+            const gender = document.getElementById('editGender').value;
+            const schoolYear = document.getElementById('editSchoolYear').value;
+            const address = document.getElementById('editAddress').value.trim();
+            const contactNumber = document.getElementById('editContactNumber').value.trim();
+
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                // Check if student ID already exists (excluding current student)
+                const studentIdExists = students.some(s => 
+                    s.id !== studentId && 
+                    s.studentId.toLowerCase() === studentIdField.toLowerCase()
+                );
+                
+                if (studentIdExists) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Student ID already exists. Please use a different ID.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const course = courses.find(c => c.id === courseId);
+                
+                student.studentId = studentIdField;
+                student.firstName = firstName;
+                student.middleName = middleName;
+                student.lastName = lastName;
+                student.fullName = `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`;
+                student.courseId = courseId;
+                student.courseName = course.name;
+                student.departmentName = course.departmentName;
+                student.gender = gender;
+                student.schoolYear = schoolYear;
+                student.address = address;
+                student.contactNumber = contactNumber;
+                student.updatedAt = new Date().toISOString();
+
+                saveData();
+                updateStudentsTable();
+                bootstrap.Modal.getInstance(document.getElementById('editStudentModal')).hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Student updated successfully!',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+        // Function to edit student
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('editStudentId').value = student.id;
+                document.getElementById('editStudentIdField').value = student.studentId;
+                document.getElementById('editFirstName').value = student.firstName;
+                document.getElementById('editMiddleName').value = student.middleName || '';
+                document.getElementById('editLastName').value = student.lastName;
+                document.getElementById('editGender').value = student.gender;
+                document.getElementById('editSchoolYear').value = student.schoolYear;
+                document.getElementById('editAddress').value = student.address;
+                document.getElementById('editContactNumber').value = student.contactNumber;
+
+                // Populate course select
+                const courseSelect = document.getElementById('editStudentCourse');
+                courseSelect.innerHTML = '';
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    if (course.id === student.courseId) {
+                        option.selected = true;
+                    }
+                    courseSelect.appendChild(option);
+                });
+
+                new bootstrap.Modal(document.getElementById('editStudentModal')).show();
+            }
+        }
+
+        // Function to delete student
+        function deleteStudent(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    students = students.filter(s => s.id !== id);
+                    saveData();
+                    updateStudentsTable();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Student deleted successfully!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        // Search functionality
+        function searchStudents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchBy = document.getElementById('searchBy').value;
+            
+            if (!searchTerm) {
+                updateStudentsTable();
+                return;
+            }
+
+            const filteredStudents = students.filter(student => {
+                if (searchBy === 'all') {
+                    return (
+                        student.studentId.toLowerCase().includes(searchTerm) ||
+                        student.firstName.toLowerCase().includes(searchTerm) ||
+                        student.lastName.toLowerCase().includes(searchTerm) ||
+                        student.courseName.toLowerCase().includes(searchTerm) ||
+                        student.schoolYear.toLowerCase().includes(searchTerm)
+                    );
+                } else if (searchBy === 'studentId') {
+                    return student.studentId.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'firstName') {
+                    return student.firstName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'lastName') {
+                    return student.lastName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'course') {
+                    return student.courseName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'schoolYear') {
+                    return student.schoolYear.toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
+
+            displayFilteredStudents(filteredStudents);
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchBy').value = 'all';
+            updateStudentsTable();
+        }
+
+        // Display filtered students
+        function displayFilteredStudents(filteredStudents) {
+            const tbody = document.getElementById('studentsTableBody');
+            tbody.innerHTML = '';
+            
+            filteredStudents.forEach((student, index) => {
+                const date = student.updatedAt ? student.updatedAt : student.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.fullName}</td>
+                    <td>${student.courseName}</td>
+                    <td>${student.gender}</td>
+                    <td>${student.schoolYear}</td>
+                    <td>${student.contactNumber}</td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editStudent(${student.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteStudent(${student.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Populate course selects
+        function populateCourseSelects() {
+            const courseSelects = [
+                document.getElementById('studentCourse'),
+                document.getElementById('editStudentCourse')
+            ];
+            
+            courseSelects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Select Course</option>';
+                    courses.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Update students table
+        function updateStudentsTable() {
+            const tbody = document.getElementById('studentsTableBody');
+            tbody.innerHTML = '';
+            
+            students.forEach((student, index) => {
+                const date = student.updatedAt ? student.updatedAt : student.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.fullName}</td>
+                    <td>${student.courseName}</td>
+                    <td>${student.gender}</td>
+                    <td>${student.schoolYear}</td>
+                    <td>${student.contactNumber}</td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editStudent(${student.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteStudent(${student.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('students', JSON.stringify(students));
+            localStorage.setItem('studentIdCounter', studentIdCounter.toString());
+        }
+
+        // Enable search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStudents();
+            }
+        });
+    </script>
+</body>
+</html>

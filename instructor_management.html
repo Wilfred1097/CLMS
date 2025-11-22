@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-active { color: #198754; }
+        .status-inactive { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">CLMS</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="computer_management.html">
+                                <i class="fas fa-laptop me-2"></i>
+                                Computer Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department_management.html">
+                                <i class="fas fa-book me-2"></i>
+                                Course/Department Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="instructor_manegement.html">
+                                <i class="fas fa-users me-2"></i>
+                                Instructor Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student_management.html">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Students Management
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Instructor Management</h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInstructorModal">
+                        <i class="fas fa-plus me-2"></i>Add Instructor
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-box">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search instructors...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select class="form-select" id="searchBy">
+                                <option value="all">Search All</option>
+                                <option value="firstName">First Name</option>
+                                <option value="lastName">Last Name</option>
+                                <option value="email">Email</option>
+                                <option value="department">Department</option>
+                                <option value="contactNumber">Contact Number</option>
+                                <option value="status">Status</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="searchInstructors()">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructors Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Instructors List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Contact</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Date Added</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="instructorsTableBody">
+                                    <!-- Instructors will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Instructor Modal -->
+    <div class="modal fade" id="addInstructorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Instructor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="instructorForm">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="middleName" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="middleName">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" required>
+                                    <option value="">Select Department</option>
+                                    <!-- Departments will be populated here -->
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="2" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contactNumber" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="contactNumber" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Add Instructor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Instructor Modal -->
+    <div class="modal fade" id="editInstructorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Instructor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editInstructorForm">
+                        <input type="hidden" id="editInstructorId">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="editFirstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="editFirstName" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editMiddleName" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="editMiddleName">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editLastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="editLastName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editDepartment" class="form-label">Department</label>
+                                <select class="form-select" id="editDepartment" required>
+                                    <!-- Departments will be populated here -->
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="editDateOfBirth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="editDateOfBirth" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="editGender" class="form-label">Gender</label>
+                                <select class="form-select" id="editGender" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="editAddress" rows="2" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editContactNumber" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="editContactNumber" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="editEmail" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editStatus" class="form-label">Status</label>
+                            <select class="form-select" id="editStatus" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Instructor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Data storage
+        let instructors = JSON.parse(localStorage.getItem('instructors')) || [];
+        let departments = JSON.parse(localStorage.getItem('departments')) || [];
+        let instructorIdCounter = parseInt(localStorage.getItem('instructorIdCounter')) || 1;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateInstructorsTable();
+            populateDepartmentSelects();
+        });
+
+        // Function to generate random password
+        function generatePassword() {
+            const length = 8;
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            return password;
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchInstructors();
+            }
+        });
+
+        // Add Instructor
+        document.getElementById('instructorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value.trim();
+            const middleName = document.getElementById('middleName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const departmentId = parseInt(document.getElementById('department').value);
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const gender = document.getElementById('gender').value;
+            const address = document.getElementById('address').value.trim();
+            const contactNumber = document.getElementById('contactNumber').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const status = document.getElementById('status').value;
+
+            if (firstName && lastName && departmentId && dateOfBirth && gender && address && contactNumber && email) {
+                // Check if email already exists
+                const emailExists = instructors.some(instructor => 
+                    instructor.email.toLowerCase() === email.toLowerCase()
+                );
+                
+                if (emailExists) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Email address already exists. Please use a different email.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const department = departments.find(dept => dept.id === departmentId);
+                const generatedPassword = generatePassword();
+
+                // Show sending credentials alert
+                Swal.fire({
+                    title: 'Sending Credentials',
+                    text: `Sending credentials to ${email}`,
+                    icon: 'info',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                }).then(() => {
+                    // Show success alert with generated password
+                    Swal.fire({
+                        title: 'Success!',
+                        html: `Credentials sent successfully!<br><br>`,
+                        icon: 'success',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Add instructor to database
+                    const newInstructor = {
+                        id: instructorIdCounter++,
+                        firstName: firstName,
+                        middleName: middleName,
+                        lastName: lastName,
+                        fullName: `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`,
+                        departmentId: departmentId,
+                        departmentName: department.name,
+                        dateOfBirth: dateOfBirth,
+                        gender: gender,
+                        address: address,
+                        contactNumber: contactNumber,
+                        email: email,
+                        status: status,
+                        password: generatedPassword, // In real app, this should be hashed
+                        createdAt: new Date().toISOString()
+                    };
+
+                    instructors.push(newInstructor);
+                    saveData();
+                    updateInstructorsTable();
+                    document.getElementById('instructorForm').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('addInstructorModal')).hide();
+                });
+            }
+        });
+
+        // Edit Instructor
+        document.getElementById('editInstructorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const instructorId = parseInt(document.getElementById('editInstructorId').value);
+            const firstName = document.getElementById('editFirstName').value.trim();
+            const middleName = document.getElementById('editMiddleName').value.trim();
+            const lastName = document.getElementById('editLastName').value.trim();
+            const departmentId = parseInt(document.getElementById('editDepartment').value);
+            const dateOfBirth = document.getElementById('editDateOfBirth').value;
+            const gender = document.getElementById('editGender').value;
+            const address = document.getElementById('editAddress').value.trim();
+            const contactNumber = document.getElementById('editContactNumber').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const status = document.getElementById('editStatus').value;
+
+            const instructor = instructors.find(inst => inst.id === instructorId);
+            if (instructor) {
+                // Check if email already exists (excluding current instructor)
+                const emailExists = instructors.some(inst => 
+                    inst.id !== instructorId && 
+                    inst.email.toLowerCase() === email.toLowerCase()
+                );
+                
+                if (emailExists) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Email address already exists. Please use a different email.',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const department = departments.find(dept => dept.id === departmentId);
+                
+                instructor.firstName = firstName;
+                instructor.middleName = middleName;
+                instructor.lastName = lastName;
+                instructor.fullName = `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`;
+                instructor.departmentId = departmentId;
+                instructor.departmentName = department.name;
+                instructor.dateOfBirth = dateOfBirth;
+                instructor.gender = gender;
+                instructor.address = address;
+                instructor.contactNumber = contactNumber;
+                instructor.email = email;
+                instructor.status = status;
+                instructor.updatedAt = new Date().toISOString();
+
+                saveData();
+                updateInstructorsTable();
+                bootstrap.Modal.getInstance(document.getElementById('editInstructorModal')).hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Instructor updated successfully!',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+        // Function to edit instructor
+        function editInstructor(id) {
+            const instructor = instructors.find(inst => inst.id === id);
+            if (instructor) {
+                document.getElementById('editInstructorId').value = instructor.id;
+                document.getElementById('editFirstName').value = instructor.firstName;
+                document.getElementById('editMiddleName').value = instructor.middleName || '';
+                document.getElementById('editLastName').value = instructor.lastName;
+                document.getElementById('editDateOfBirth').value = instructor.dateOfBirth;
+                document.getElementById('editGender').value = instructor.gender;
+                document.getElementById('editAddress').value = instructor.address;
+                document.getElementById('editContactNumber').value = instructor.contactNumber;
+                document.getElementById('editEmail').value = instructor.email;
+                document.getElementById('editStatus').value = instructor.status;
+
+                // Populate department select
+                const deptSelect = document.getElementById('editDepartment');
+                deptSelect.innerHTML = '';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.name;
+                    if (dept.id === instructor.departmentId) {
+                        option.selected = true;
+                    }
+                    deptSelect.appendChild(option);
+                });
+
+                new bootstrap.Modal(document.getElementById('editInstructorModal')).show();
+            }
+        }
+
+        // Search functionality
+        function searchInstructors() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchBy = document.getElementById('searchBy').value;
+            
+            if (!searchTerm) {
+                updateInstructorsTable();
+                return;
+            }
+
+            const filteredInstructors = instructors.filter(instructor => {
+                if (searchBy === 'all') {
+                    return (
+                        instructor.firstName.toLowerCase().includes(searchTerm) ||
+                        instructor.lastName.toLowerCase().includes(searchTerm) ||
+                        instructor.email.toLowerCase().includes(searchTerm) ||
+                        instructor.departmentName.toLowerCase().includes(searchTerm) ||
+                        instructor.contactNumber.includes(searchTerm) ||
+                        instructor.status.toLowerCase().includes(searchTerm)
+                    );
+                } else if (searchBy === 'firstName') {
+                    return instructor.firstName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'lastName') {
+                    return instructor.lastName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'email') {
+                    return instructor.email.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'department') {
+                    return instructor.departmentName.toLowerCase().includes(searchTerm);
+                } else if (searchBy === 'contactNumber') {
+                    return instructor.contactNumber.includes(searchTerm);
+                } else if (searchBy === 'status') {
+                    return instructor.status.toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
+
+            displayFilteredInstructors(filteredInstructors);
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchBy').value = 'all';
+            updateInstructorsTable();
+        }
+
+        // Display filtered instructors
+        function displayFilteredInstructors(filteredInstructors) {
+            const tbody = document.getElementById('instructorsTableBody');
+            tbody.innerHTML = '';
+            
+            filteredInstructors.forEach((instructor, index) => {
+                const statusClass = instructor.status === 'Active' ? 'status-active' : 'status-inactive';
+                const date = instructor.updatedAt ? instructor.updatedAt : instructor.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${instructor.fullName}</td>
+                    <td>${instructor.departmentName}</td>
+                    <td>${instructor.contactNumber}</td>
+                    <td>${instructor.email}</td>
+                    <td><span class="${statusClass} fw-bold">${instructor.status}</span></td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editInstructor(${instructor.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteInstructor(${instructor.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Function to delete instructor
+        function deleteInstructor(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    instructors = instructors.filter(inst => inst.id !== id);
+                    saveData();
+                    updateInstructorsTable();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Instructor deleted successfully!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        // Populate department selects
+        function populateDepartmentSelects() {
+            const departmentSelects = [
+                document.getElementById('department'),
+                document.getElementById('editDepartment')
+            ];
+            
+            departmentSelects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Select Department</option>';
+                    departments.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.id;
+                        option.textContent = dept.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Update instructors table
+        function updateInstructorsTable() {
+            const tbody = document.getElementById('instructorsTableBody');
+            tbody.innerHTML = '';
+            
+            instructors.forEach((instructor, index) => {
+                const statusClass = instructor.status === 'Active' ? 'status-active' : 'status-inactive';
+                const date = instructor.updatedAt ? instructor.updatedAt : instructor.createdAt;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${instructor.fullName}</td>
+                    <td>${instructor.departmentName}</td>
+                    <td>${instructor.contactNumber}</td>
+                    <td>${instructor.email}</td>
+                    <td><span class="${statusClass} fw-bold">${instructor.status}</span></td>
+                    <td>${new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editInstructor(${instructor.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteInstructor(${instructor.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('instructors', JSON.stringify(instructors));
+            localStorage.setItem('instructorIdCounter', instructorIdCounter.toString());
+        }
+    </script>
+</body>
+</html>

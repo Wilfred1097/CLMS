@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CLMS</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card .card-body {
+            padding: 25px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        .stat-icon {
+            font-size: 3rem;
+            opacity: 0.7;
+        }
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            border-left: 3px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">CLMS</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="computer_management.html">
+                                <i class="fas fa-laptop me-2"></i>
+                                Computer Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department_management.html">
+                                <i class="fas fa-book me-2"></i>
+                                Course/Department Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="instructor_management.html">
+                                <i class="fas fa-users me-2"></i>
+                                Instructor Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student_management.html">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Students Management
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard Overview</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="text-muted" id="currentDateTime"></span>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-primary">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Departments
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="departmentsCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-building stat-icon text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-success">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Courses
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="coursesCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-book stat-icon text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-info">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Instructors
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="instructorsCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users stat-icon text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-warning">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Students
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="studentsCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-user-graduate stat-icon text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row - Computer Stats -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-secondary">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                            Laboratories
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="laboratoriesCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-laptop-house stat-icon text-secondary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-danger">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                            Total Computers
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="computersCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-laptop stat-icon text-danger"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-success">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Working Computers
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="workingComputersCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-check-circle stat-icon text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-warning">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Maintenance Needed
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 stat-number" id="maintenanceComputersCount">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-tools stat-icon text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Recent Activity -->
+                <div class="row">
+                    <!-- Computer Status Chart -->
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Computer Status Overview</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="computerStatusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                            </div>
+                            <div class="card-body recent-activity">
+                                <div id="recentActivityList">
+                                    <!-- Recent activities will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Row -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Students by Course</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="studentsByCourseChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Instructors by Department</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="instructorsByDepartmentChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            loadDashboardData();
+            setInterval(updateDateTime, 60000); // Update time every minute
+        });
+
+        // Update current date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Load all dashboard data
+        function loadDashboardData() {
+            // Load data from localStorage
+            const departments = JSON.parse(localStorage.getItem('departments')) || [];
+            const courses = JSON.parse(localStorage.getItem('courses')) || [];
+            const instructors = JSON.parse(localStorage.getItem('instructors')) || [];
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const laboratories = JSON.parse(localStorage.getItem('laboratories')) || [];
+            const computers = JSON.parse(localStorage.getItem('computers')) || [];
+
+            // Update statistics
+            document.getElementById('departmentsCount').textContent = departments.length;
+            document.getElementById('coursesCount').textContent = courses.length;
+            document.getElementById('instructorsCount').textContent = instructors.length;
+            document.getElementById('studentsCount').textContent = students.length;
+            document.getElementById('laboratoriesCount').textContent = laboratories.length;
+            document.getElementById('computersCount').textContent = computers.length;
+
+            // Computer status counts
+            const workingComputers = computers.filter(comp => comp.status === 'Working').length;
+            const maintenanceComputers = computers.filter(comp => comp.status === 'Under Maintenance').length;
+            const defectiveComputers = computers.filter(comp => comp.status === 'Defective').length;
+
+            document.getElementById('workingComputersCount').textContent = workingComputers;
+            document.getElementById('maintenanceComputersCount').textContent = maintenanceComputers;
+
+            // Create charts
+            createComputerStatusChart(workingComputers, maintenanceComputers, defectiveComputers);
+            createStudentsByCourseChart(students, courses);
+            createInstructorsByDepartmentChart(instructors, departments);
+            updateRecentActivity();
+        }
+
+        // Computer Status Chart
+        function createComputerStatusChart(working, maintenance, defective) {
+            const ctx = document.getElementById('computerStatusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Working', 'Under Maintenance', 'Defective'],
+                    datasets: [{
+                        data: [working, maintenance, defective],
+                        backgroundColor: [
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Computer Status Distribution'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Students by Course Chart
+        function createStudentsByCourseChart(students, courses) {
+            const courseStudentCount = {};
+            courses.forEach(course => {
+                courseStudentCount[course.name] = students.filter(student => student.courseId === course.id).length;
+            });
+
+            const ctx = document.getElementById('studentsByCourseChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(courseStudentCount),
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: Object.values(courseStudentCount),
+                        backgroundColor: '#4e73df',
+                        borderColor: '#2e59d9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Instructors by Department Chart
+        function createInstructorsByDepartmentChart(instructors, departments) {
+            const departmentInstructorCount = {};
+            departments.forEach(dept => {
+                departmentInstructorCount[dept.name] = instructors.filter(instructor => instructor.departmentId === dept.id).length;
+            });
+
+            const ctx = document.getElementById('instructorsByDepartmentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(departmentInstructorCount),
+                    datasets: [{
+                        data: Object.values(departmentInstructorCount),
+                        backgroundColor: [
+                            '#4e73df',
+                            '#1cc88a',
+                            '#36b9cc',
+                            '#f6c23e',
+                            '#e74a3b',
+                            '#858796',
+                            '#5a5c69'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update recent activity
+        function updateRecentActivity() {
+            const activities = [];
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const instructors = JSON.parse(localStorage.getItem('instructors')) || [];
+            const computers = JSON.parse(localStorage.getItem('computers')) || [];
+
+            // Get recent students (last 5)
+            students.slice(-5).forEach(student => {
+                activities.push({
+                    type: 'student',
+                    message: `New student registered: ${student.fullName}`,
+                    date: student.createdAt
+                });
+            });
+
+            // Get recent instructors (last 3)
+            instructors.slice(-3).forEach(instructor => {
+                activities.push({
+                    type: 'instructor',
+                    message: `New instructor added: ${instructor.fullName}`,
+                    date: instructor.createdAt
+                });
+            });
+
+            // Get recent computer updates (last 2)
+            computers.slice(-2).forEach(computer => {
+                activities.push({
+                    type: 'computer',
+                    message: `Computer ${computer.pcNumber} added to ${computer.labName}`,
+                    date: computer.lastUpdated
+                });
+            });
+
+            // Sort by date (newest first) and take top 8
+            activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const recentActivities = activities.slice(0, 8);
+
+            const activityList = document.getElementById('recentActivityList');
+            activityList.innerHTML = '';
+
+            recentActivities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                let icon = '';
+                let color = '';
+                switch(activity.type) {
+                    case 'student':
+                        icon = 'fa-user-graduate';
+                        color = 'text-success';
+                        break;
+                    case 'instructor':
+                        icon = 'fa-user-tie';
+                        color = 'text-primary';
+                        break;
+                    case 'computer':
+                        icon = 'fa-laptop';
+                        color = 'text-info';
+                        break;
+                }
+
+                activityItem.innerHTML = `
+                    <div class="small ${color}">
+                        <i class="fas ${icon} me-1"></i>
+                        ${activity.message}
+                    </div>
+                    <div class="small text-muted">
+                        ${new Date(activity.date).toLocaleDateString()} at 
+                        ${new Date(activity.date).toLocaleTimeString()}
+                    </div>
+                `;
+                activityList.appendChild(activityItem);
+            });
+
+            // If no activities
+            if (recentActivities.length === 0) {
+                activityList.innerHTML = '<div class="text-center text-muted">No recent activity</div>';
+            }
+        }
+    </script>
+</body>
+</html>
